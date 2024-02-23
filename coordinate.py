@@ -327,7 +327,203 @@ class PairOfStraightLine(TwoDegreeEquation):
         return l1,l2
 
 
+class StraightLine(Shape):
+    def __init__(self, a, b,c):
+            self.a = a
+            self.b = b
+            self.c = c
 
+            try:
+                self.slope = -a/b
+            except ZeroDivisionError:
+                self.slope = math.pow(10,10)
+            Shape.__init__(self, "Straight Line")
+        
+    def __str__(self):
+            return str(self.getEquation())
+        
+    def getEquation(self):
+            x,y = sympy.symbols("x y")
+            return sympy.Eq(self.a*x + self.b * y + self.c,0)
+        
+    def getSlope(self):
+            return self.slope
+        
+    def draw(self):
+            x = np.linspace(-1000,1000,300)
+            y = np.linspace(-1000,1000,300)
+            X,Y = np.meshgrid(x,y)
+            F = self.a*X+self.b*Y+self.c
+
+            fig,ax = plt.subplots()
+            ax.contour(X,Y,F,levels=[0])
+            plt.show()
+
+    def getAngle(self, line2):
+            m1 = line2.getSlope()
+            m2 = self.getSlope()
+
+            if m1*m2 != 1:
+                a = abs((m2-m1)/(1+m1*m2))
+                theta = math.degrees(math.tanh(a))
+            else: return 90
+            return theta
+        
+    def isPointOnLine(self,X,Y):
+            F = self.a*X + self.b*Y + self.c
+            if F == 0: return True
+            else: return False
+
+    def distanceOfPointFromLine(self, point):
+            x,y = point.getPoint()
+            a,b,c = self.a, self.b, self.c
+            d = abs(a*x+b*y+c)/math.sqrt(a**2+b**2)
+            return d
+
+    def footOfPointOnLine(self, point):
+            x,y = point.getPoint()
+            a,b,c = self.a, self.b, self.c
+            d = -1*(abs(a*x+b*y+c)/(a**2+b**2))
+            x1 = x+a*d
+            y1 = y+b*d
+            return Point(x1, y1)
+
+    def imageOfPointInLine(self, point):
+            x,y = point.getPoint()
+            a,b,c = self.a,self.b,self.c
+            d = -2*(abs(a*x+b*y+c)/(a**2+b**2))
+            x1 = x+a*d
+            y1 = y + b*d
+            return Point(x1,y1)
+        
+    def getPointOfIntersection(self, line):
+            x,y = sympy.symbols('x y')
+            l1 = self.a*x+self.b*y+self.c
+            l2 = line.a*x+line.b*y+line.c
+            sol = sympy.solve((l1,l2),(x,y))
+            return Point(sol[x], sol[y])
+
+    def getParallelLine(self, point):
+            slope = self.getSlope()
+            return getLinePointSlope(point, slope)
+            
+
+    def getPerpendicularLine(self, point):
+            X,Y = point.getPoint()
+            slope = self.getSlope()
+            x = sympy.symbols('x')
+            if slope != 0 : 
+                slope = -1/slope
+                return getLinePointSlope(point, slope)
+            else:
+                return sympy.Eq(x-X, 0)
+
+    def getFamilyOfLines(self, other):
+            P = self.getPointOfIntersection(other)
+            x1,y1 = P.getPoint()
+            x,y,m = sympy.symbols('x y m')
+            e = sympy.Eq((y-y1) - m*(x-x1), 0)
+            return e
+
+class Circle(TwoDegreeEquation):
+    def __init__(self, *args):
+
+        if len(args) == 6:
+            TwoDegreeEquation.__init__(self, *args)
+            if self.getShape() != "Circle":
+                    raise ValueError("Not a Circle")
+            if self.a != 0:
+                    self.g/=self.a
+                    self.f/=self.a
+                    self.c/=self.a
+                    self.b/=self.a
+                    self.a /= self.a
+            self.radius = math.sqrt(self.g**2+self.f**2-self.c)
+        else:
+                raise TypeError("Enter only 6 args in order as a,h,b,g,f,c")
+
+    def setValue(self,*args):
+        self.__init__(*args)
+    
+    def __str__(self):
+        return str(self.getEquation())
+
+    def getEquation(self):
+        y,x = sympy.symbols('y x')
+        sympy.init_printing()
+        return sympy.Eq(self.a*(x**2)+2*self.h*x*y+self.b*(y**2)+2*self.g*x+2*self.f*y+self.c, 0)
+    
+    def getRadius(self):
+        return self.radius
+
+    def getCenter(self):
+        return Point(-self.g,-self.f)
+
+    def draw(self):
+        angle = np.linspace(0,2*np.pi,300)
+        radius = self.radius
+        x = -self.g + (radius*np.cos(angle))
+        y = -self.f + (radius*np.sin(angle))
+
+        axes = plt.gca()
+        axes.set_aspect(1,adjustable="datalim")
+        axes.plot(x,y)
+
+        plt.title('Circle')
+        plt.xlabel('x-axis')
+        plt.ylabel('y-axis')
+
+        plt.show()
+
+    def area(self):
+        r = self.radius
+        return np.pi*(r**2)
+    
+    def resize(self, factor):
+        self.radius *= (factor)
+    
+    def FamilyOfCircles(self,other):
+
+        x,y,b = sympy.symbols('x y b')
+        c1 = self.a*(x**2) + 2*self.h*x*y + self.b*(y**2) + 2*self.g*x + 2*self.f*y + self.c
+        c2 = other.a*(x**2) + 2*other.h*x*y + other.b*(y**2) + 2*other.g*x + 2*other.f*y + other.c
+        
+        exp = c1 + b*c2
+        return sympy.Eq(exp, 0)
+    
+    def getChordLength(self,X,Y):
+        '''X and Y are coordinates of the midpoint of the chord'''
+        if self.isPointInside(X,Y):
+            Po = self.getCenter()
+            r = self.radius
+            P1 = Point(X,Y)
+            d = (distance(Po,P1))
+            d = str(d)
+            d = float(d)
+            L = 2*math.sqrt(r**2-d**2)
+            return L
+
+    def isPointInside(self,X,Y):
+        F = self.a*X**2 + 2*self.h*X*Y + self.b*Y**2 + 2*self.g*X + 2*self.h*Y + self.c
+        return True if F < 0 else False
+    
+    def isPointOutside(self,X,Y):
+        F = self.a*X**2 + 2*self.h*X*Y + self.b*Y**2 + 2*self.g*X + 2*self.h*Y + self.c
+        return True if F > 0 else False
+
+    def EquationOfChord(self,X,Y):
+        y,x = sympy.symbols(('y','x'))
+        S1 = self.a*X**2 + 2*self.h*X*Y + self.b*Y**2 + 2*self.g*X + 2*self.f*Y + self.c
+        T = self.a*X*x + self.h*x*Y + self.h*y*X + self.b*Y*y + self.g*(X+x) + self.f*(Y+y)+self.c
+        f = T-S1
+        return sympy.Eq(T-S1, 0)
+
+    def RadicalAxis(self,other):
+        x,y = sympy.symbols('x y')
+        s1 = self.a*x**2+2*self.h*x*y+self.b*y**2+2*self.g*x+2*self.f*y+self.c
+        s2 = other.a*x**2+2*other.h*x*y+other.b*y**2+other.g*x+2*other.f*y+other.c
+
+        return sympy.Eq(s1-s2)
 
 
 

@@ -884,31 +884,31 @@ class Triangle(Shape):
     def distanceBetweenCircumcenterOrthocenter(self):
         Pc=self.getCicumcenter()
         Po=self.getOrthocenter()
-        d=float(str(distance(Pc,Po)))
+        d=float(str(Distance(Pc,Po)))
         return d
 
     def distanceBetweenCircumcenterIncenter(self):
         Pc=self.getCicumcenter()
         Pi=self.getIncenter()
-        d=float(str(distance(Pc,Pi)))
+        d=float(str(Distance(Pc,Pi)))
         return d
 
     def distanceBetweenCircumcenterCentroid(self):
         Pc=self.getCicumcenter()
         Pg=self.getCentroid()
-        d=float(str(distance(Pc,Pg)))
+        d=float(str(Distance(Pc,Pg)))
         return d
 
     def distanceBetweenIncenterOrthocenter(self):
         Pi=self.getIncenter()
         Po=self.getOrthocenter()
-        d=float(str(distance(Pi,Po)))
+        d=float(str(Distance(Pi,Po)))
         return d
 
     def distanceBetweenCentroidOrthocenter(self):
         Pg=self.getCentroid()
         Po=self.getOrthocenter()
-        d=float(str(distance(Pg,Po)))
+        d=float(str(Distance(Pg,Po)))
         return d
 
 

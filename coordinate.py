@@ -525,6 +525,392 @@ class Circle(TwoDegreeEquation):
 
         return sympy.Eq(s1-s2)
 
+class Triangle(Shape):
+    def __init__(self, l1: StraightLine, l2: StraightLine, l3: StraightLine):
+        self.line1 = l1
+        self.line2 = l2
+        self.line3 = l3
+        self.point1 = l1.getPointOfIntersection(l2)
+        self.point2 = l2.getPointOfIntersection(l3)
+        self.point3 = l3.getPointOfIntersection(l1)
+        self.angle1 = l1.getAngle(l2)
+        self.angle2 = l2.getAngle(l3)
+        self.angle3 = l3.getAngle(l1)
+        self.slope1 = l1.getSlope()
+        self.slope2 = l2.getSlope()
+        self.slope3 = l3.getSlope()
+        Shape.__init__(self, "Triangle")
+
+        if not self.isTriangle():
+            raise ValueError("This is not a triangle!")
+        
+    def setTriangle(self,l1,l2,l3):
+        self.__init__(l1,l2,l3)
+    
+    def getTriangle(self):
+        return self.line1, self.line2, self.line3
+
+    def isTriangle(self):
+        a = self.C = float(str(Distance(self.point1, self.point2)))
+        b = self.A = float(str(Distance(self.point2, self.point3)))
+        c = self.B = float(str(Distance(self.point3, self.point1)))
+        if a+b > c or b+c > a or a+c > b:
+            return True
+        return False
+    
+    def isAcuteAngleTriangle(self):
+        if self.angle1 < 90 and self.angle2 < 90 and self.angle3 < 90:
+            return True
+        return False
+    
+    def isRightAngleTriangle(self):
+        if self.angle1 == 90 or self.angle2 == 90 or self.angle3 == 90:
+            return True   
+        return False
+    
+    def isObtuseAngleTriangle(self):
+        if self.angle1 > 90 or self.angle2 > 90 or self.angle3 > 90:
+            return True
+        return False
+
+    def getTrianglePoints(self):
+        return self.point1, self.point2, self.point3
+    
+    def getTriangleAngles(self):
+        return self.angle1, self.angle2, self.angle3
+
+    def getTriangleSides(self):
+        return self.A, self.B, self.C
+    
+    def getTriangleSlopes(self):
+        return self.slope1, self.slope2, self.slope3
+
+    def isEquilateralTriangle(self):
+        if self.A == self.B == self.C == 0 or self.angle1 == self.angle2 == self.angle3 == 60:
+            return True
+        return False
+
+    def isIsoscelesTriangle(self):
+        if self.A == self.B or self.B == self.C or self.C == self.A:
+            return True
+        return False
+    
+    def isScaleneTriangle(self):
+        if self.A != self.B != self.C or self.angle1 != self.angle2 != self.angle3:
+            return True
+        return False
+
+    def area(self):
+        a,b,c = self.A, self.B, self.C
+        s = (a+b+c)/2
+        return math.sqrt(s*(s-a)*(s-b)*(s-c))
+
+    def draw(self):
+        l1,l2,l3 = self.getTriangle()
+        a1,b1,c1 = l1.a, l1.b,l1.c
+        a2,b2,c2 = l2.a, l2.b, l2.c
+        a3,b3,c3 = l3.a, l3.b, l3.c
+        x = np.linspace(-100,100,300)
+        y = np.linspace(-100,100,300)
+        X,Y = np.meshgrid(x,y)
+        F1 = a1*X+b1*Y+c1
+        F2 = a2*X+b2*Y+c2
+        F3 = a3*x+b3*y+c3
+
+        fig,ax = plt.subplots()
+        ax.contour(X,Y,F1,levels=[0])
+        ax.contour(X,Y,F2, levels=[0])
+        ax.contour(X,Y,F3,levels=[0])
+        plt.show()
+
+    def getCircumradius(self):
+        c = self.A*self.B*self.C / (4*self.area())
+        return r
+
+    def getInradius(self):
+        s = (self.A+self.B+self.C)/2
+        r = self.area()/s
+        return r
+    
+    def getExradius(self):
+        s = (self.A+self.B+self.C)/2
+        a = self.area()
+        r1 = a/(s-self.A)
+        r2 = a/(s-self.B)
+        r3 = a/(s-self.C)
+        return r1,r2,r3
+    
+    def getAngleBisectorLength1(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        cosAby2 = math.sqrt((s*(s-a))/(b*c))
+        return (2*b*c*cosAby2)/(b+c)
+    
+    def getAngleBisectorLength2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        cosBby2 = math.sqrt((s*(s-b))/(a*c))
+        return (2*a*c*cosBby2)/(a+c)
+    
+    def getAngleBisectorLength3(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        cosCby2 = math.sqrt((s*(s-c))/(b*a))
+        return (2*b*a*cosCby2)/(b+a)
+    
+    def getMedianLength1(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+
+        return 0.5*math.sqrt(2*(b**2)+2*(c**2)-a**2)
+
+    def getMedianLength2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+
+        return 0.5*math.sqrt(2*(a**2)+2*(c**2)-b**2)
+
+    def getMedianLength3(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+
+        return 0.5*math.sqrt(2*(a**2)+2*(b**2)-c**2)
+
+    def getAltitudeLength1(self):
+        a,b,c = self.A,self.B,self.C
+        A = self.area()
+        
+        return 2*A/a
+
+    def getAltitudeLength2(self):
+        a,b,c = self.A,self.B,self.C
+        A = self.area()
+        
+        return 2*A/b
+    
+    def getAltitudeLength3(self):
+        a,b,c = self.A,self.B,self.C
+        A = self.area()
+        
+        return 2*A/c
+
+    def sinA(self):
+        R = self.getCircumradius()
+        return self.A/R
+
+    def sinB(self):
+        R = self.getCircumradius()
+        return self.B/R
+    
+    def sinC(self):
+        R = self.getCircumradius()
+        return self.C/R
+
+    def sinAby2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        
+        return math.sqrt(((s-b)*(s-c))/(b*c))
+    
+    def sinBby2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        
+        return math.sqrt(((s-a)*(s-c))/(a*c))
+    
+    def sinCby2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        
+        return math.sqrt(((s-b)*(s-a))/(b*a))
+
+    def cosA(self):
+        a,b,c = self.A,self.B,self.C
+        return ((b**2)+(c**2)-(a**2))/(2*b*c)
+
+    def cosB(self):
+        a,b,c = self.A,self.B,self.C
+        return ((a**2)+(c**2)-(b**2))/(2*a*c)
+
+    def cosC(self):
+        a,b,c = self.A,self.B,self.C
+        return ((b**2)+(a**2)-(c**2))/(2*b*a)
+    
+    def cosAby2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        return math.sqrt((s*(s-a))/(b*c))
+
+    def cosBby2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        return math.sqrt((s*(s-b))/(a*c))
+    
+    def cosCby2(self):
+        a,b,c = self.A,self.B,self.C
+        s = (a+b+c)/2
+        return math.sqrt((s*(s-c))/(b*a))
+
+    def tanAby2(self):
+        return self.sinAby2/self.cosAby2
+    
+    def tanBby2(self):
+        return self.sinBby2/self.cosBby2
+    
+    def tanCby2(self):
+        return self.sinCby2/self.cosCby2
+    
+    def isPointInsideTriangle(self, point: Point):
+        x,y = point.getPoint()
+
+        l1,l2,l3 = self.getTriangle()
+
+        a1,b1,c1 = l1.a,l1.b,l1.c
+        a2,b2,c2 = l2.a,l2.b,l2.c
+        a3,b3,c3 = l3.a,l3.b,l3.c
+
+        if b1 < 0:
+            a1,b1,c1 = -a1,-b1,-c1
+        if b2 < 0:
+            a2,b2,c2 = -a2,-b2,-c2
+        if b3 < 0:
+            a3,b3,c3 = -a3,-b3,-c3
+        
+        F = (a1*x+b1*y+c1)*(a2*x+b2*y+c2)*(a3*x+b3*y+c3)
+        if F < 0: return True
+        else: return False
+
+    def isPointOutsideTriangle(self, point: Point):
+        x,y = point.getPoint()
+
+        l1,l2,l3 = self.getTriangle()
+
+        a1,b1,c1 = l1.a,l1.b,l1.c
+        a2,b2,c2 = l2.a,l2.b,l2.c
+        a3,b3,c3 = l3.a,l3.b,l3.c
+
+        if b1 < 0:
+            a1,b1,c1 = -a1,-b1,-c1
+        if b2 < 0:
+            a2,b2,c2 = -a2,-b2,-c2
+        if b3 < 0:
+            a3,b3,c3 = -a3,-b3,-c3
+        
+        F = (a1*x+b1*y+c1)*(a2*x+b2*y+c2)*(a3*x+b3*y+c3)
+        if F > 0: return True
+        else: return False
+
+
+    def getCircumcenter(self):
+        p1,p2,p3 = self.getTrianglePoints()
+        x1,y1 = p1.getPoint()
+        x2,y2 = p2.getPoint()
+        x3,y3 = p3.getPoint()
+
+        sinA,sinB,sinC = self.sinA(), self.sinB(), self.sinC()
+        cosA,cosB,cosC = self.cosA(), self.cosB(), self.cosC()
+        sin2A,sin2B,sin2C = 2*sinA*cosA, 2*sinB*cosB, 2*sinC*cosC
+
+        x = ((x1*sin2A)+(x2*sin2B)+(x3*sin2C))/(sin2A+sin2B+sin2C)
+        y = ((y1*sin2A)+(y2*sin2B)+(y3*sin2C))/(sin2A+sin2B+sin2C)
+
+        return Point(x,y)
+
+    def getIncenter(self):
+        p1,p2,p3 = self.getTrianglePoints()
+        x1,y1 = p1.getPoint()
+        x2,y2 = p2.getPoint()
+        x3,y3 = p3.getPoint()
+
+        a,b,c = self.A,self.B,self.C
+
+        x = (a*x1+b*x2+c*x3)/(a+b+c)
+        y = (a*y1+b*y2+c*y3)/(a+b+c)
+
+        return Point(x,y)
+
+    def getExcenters(self):
+        p1,p2,p3 = self.getTrianglePoints()
+        x1,y1 = p1.getPoint()
+        x2,y2 = p2.getPoint()
+        x3,y3 = p3.getPoint()
+
+        a,b,c = self.A,self.B,self.C
+
+        ix1 = (-a*x1+b*x2+c*x3)/(-a+b+c)
+        iy1 = (-a*y1+b*y2+c*y3)/(-a+b+c)
+        ix2 = (a*x1-b*x2+c*x3)/(a-b+c)
+        iy2 = (a*y1-b*y2+c*y3)/(a-b+c)
+        ix3 = (a*x1+b*x2-c*x3)/(a+b-c)
+        iy3 = (a*y1+b*y2-c*y3)/(a+b-c)
+
+        return Point(ix1,iy1), Point(ix2,iy2), Point(ix3, iy3)
+
+    def getExcentralTriangle(self):
+        R = self.getCircumcenterLength()
+        A = 4*R*self.cosAby2()
+        B = 4*r*self.cosBby2()
+        C = 4*r*self.cosCby2()
+
+        return A,B,C
+
+    def getOrthocenter(self):
+        p1,p2,p3 = self.getTrianglePoints()
+        x1,y1 = p1.getPoint()
+        x2,y2 = p2.getPoint()
+        x3,y3 = p3.getPoint()
+        
+        tanA2,tanB2,tanC2 = self.tanAby2(),self.tanBby2(),self.tanCby2()
+        tanA = (2*tanA2)/(1-(tanA2**2))
+        tanB = (2*tanB2)/(1-(tanB2**2))
+        tanC = (2*tanC2)/(1-(tanC2**2))
+
+        x = ((x1*tanA)+(x2*tanB)+(x3*tanC))/(tanA+tanB+tanC) 
+        y = (y1*tanA + y2*tanB + y3*tanC)/(tanA+tanB+tanC)
+        
+        return Point(x,y)
+
+    def getCentroid(self):
+        p1,p2,p3 = self.getTrianglePoints()
+        x1,y1 = p1.getPoint()
+        x2,y2 = p2.getPoint()
+        x3,y3 = p3.getPoint()
+
+        x = (x1+x2+x3)/3
+        y = (y1+y2+y3)/3
+
+        return Point(x,y)
+
+    def distanceBetweenCircumcenterOrthocenter(self):
+        Pc=self.getCicumcenter()
+        Po=self.getOrthocenter()
+        d=float(str(distance(Pc,Po)))
+        return d
+
+    def distanceBetweenCircumcenterIncenter(self):
+        Pc=self.getCicumcenter()
+        Pi=self.getIncenter()
+        d=float(str(distance(Pc,Pi)))
+        return d
+
+    def distanceBetweenCircumcenterCentroid(self):
+        Pc=self.getCicumcenter()
+        Pg=self.getCentroid()
+        d=float(str(distance(Pc,Pg)))
+        return d
+
+    def distanceBetweenIncenterOrthocenter(self):
+        Pi=self.getIncenter()
+        Po=self.getOrthocenter()
+        d=float(str(distance(Pi,Po)))
+        return d
+
+    def distanceBetweenCentroidOrthocenter(self):
+        Pg=self.getCentroid()
+        Po=self.getOrthocenter()
+        d=float(str(distance(Pg,Po)))
+        return d
+
 
 
 # Testing Code

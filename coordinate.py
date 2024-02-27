@@ -1264,19 +1264,4 @@ class Parallelogram(Quadilateral):
         return not self.isPointPresentInside()
 
 
-# Testing Code
 
-pt1 = Point(4,0)
-# pt.setPoint(-100,-123123)
-# a = pt.getPoint()
-# print(a)
-pt2 = Point(0,4)
-# print(pt1.midPoint(pt))
-# print(pt1.sectionPoint(pt,1,3))
-# print(pt1.getLinePointSlope(2))
-# print(Distance(pt1, pt2))
-# d = Distance(pt1, pt2)
-# print(d.getDistance())
-origin = Point(5,-5)
-circle = CircleRadiusForm(10, origin)
-print(circle.getEquation())

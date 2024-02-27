@@ -910,7 +910,358 @@ class Triangle(Shape):
         Po=self.getOrthocenter()
         d=float(str(Distance(Pg,Po)))
         return d
+class Quadrilateral(Shape):
+    def __init__(self, l1:StraightLine, l2:StraightLine,l3:StraightLine,l4:StraightLine):
+        self.line1 = l1
+        self.line2 = l2
+        self.line3 = l3
+        self.line4 = l4
 
+        self.point1 = l1.getPointOfIntersection(l2)
+        self.point2 = l2.getPointOfIntersection(l3)
+        self.point3 = l3.getPointOfIntersection(l4)
+        self.point4 = l4.getPointOfIntersection(l1)
+
+        self.side1 = float(str(Distance(self.point1, self.point2)))
+        self.side2 = float(str(Distance(self.point2, self.point3)))
+        self.side3 = float(str(Distance(self.point3, self.point4)))
+        self.side4 = float(str(Distance(self.point4, self.point1)))
+
+        self.angle1 = l1.getAngle(l2)
+        self.angle2 = l2.getAngle(l3)
+        self.angle3 = l3.getAngle(l4)
+        self.angle4 = l4.getAngle(l1)
+
+        self.slope1 = l1.getSlope()
+        self.slope2 = l2.getSlope()
+        self.slope3 = l3.getSlope()
+        self.slope4 = l4.getSlope()
+
+        self.shape = self.checkShape()
+        Shape.__init__(self,self.shape)
+
+        def setQuadrilateral(self,l1,l2,l3,l4):
+            self.__init__(l1,l2,l3,l4)
+
+        def __str__(self):
+            return str(self.getLineEquations())
+
+        def getQuadrilateral(self):
+            return self.line1,self.line2,self.line3,self.line4
+
+        def getSideLength(self):
+            return self.side1, self.side2, self.side3, self.side4
+
+        def getSlopes(self):
+            return self.slope1, self.slope2, self.slope3, self.slope4
+        
+        def getAngles(self):
+            return self.angle1, self.angle2, self.angle3, self.angle4
+        
+        def getPoints(self):
+            return self.point1, self.point2, self.point3, self.point4
+        
+        def getCenter(self):
+            x, y = sympy.symbols('x y')
+            d1,d2 = self.getDiagonalEquations()
+            sol = sympy.solve((d1,d2),(x,y))
+            return Point(sol[x],sol[y])
+        
+        def draw(self):
+            l1,l2,l3,l4 = self.getSquare()
+            a1,b1,c1 = l1.a,l1.b,l1.c
+            a2,b2,c2 = l2.a,l2.b,l2.c
+            a3,b3,c3 = l3.a,l3.b,l3.c
+            a4,b4,c4 = l4.a,l4.b,l4.c
+
+            x = np.linspace(-100,100,300)
+            y = np.linspace(-100,100,300)
+            X,Y = np.meshgrid(x,y)
+            
+            F1 = a1*X+b1*Y+c1
+            F2 = a2*X+b2*Y+c2
+            F3 = a3*X+b3*Y+c3
+            F4 = a4*X+b4*Y+c4
+
+            fig,ax = plt.subplots()
+            ax.contour(X,Y,F1,levels=[0])
+            ax.contour(X,Y,F2, levels = [0])
+            ax.contour(X,Y,F3, levels = [0])
+            ax.contour(X,Y,F4,levels=[0])
+            plt.show()
+
+        def area(self):
+            pass
+
+        def getDiagonalLength(self):
+            a,b,c,d = self.getPoints()
+            d1 = float(str(Distance(a,c)))
+            d2 = float(str(Distance(b,d)))
+            return d1,d2
+
+        def getDiagonalEquations(self):
+            A,B,C,D = self.getPoints()
+            ax1,ay1 = A.getPoint()
+            bx1,by1 = B.getPoint()
+            cx1,cy1 = C.getPoint()
+            dx1,dy1 = D.getPoint()
+
+            m1 = (cy1-ay1)/(cx1-ax1)
+            m2 = (dy1-by1)/(dx1-bx1)
+
+            x,y = sympy.symbols('x y')
+            d1 = sympy.Eq((y-ay1)-m1*(x-ax1),0)
+            d2 = sympy.Eq((y-by1)-m2*(x-bx1),0)
+
+            return d1,d2
+        
+        def getLineEquations(self):
+            return self.getQuadrilateral()
+        
+        def getPerimeter(self):
+            a,b,c,d = self.getSideLength()
+            return a+b+c+d
+        
+        def checkShape(self):
+            a,b,c,d = self.getSideLength()
+            A,B,C,D = self.getAngles()
+
+            if a==b==c==d and A==B==C==D==90:
+                return "Square"
+            elif a==b==c==d and A==C and B==D:
+                return "Rhombus"
+            elif a==c and b==d and A==B==C==D==90:
+                return "Rectangle"
+            elif a==c and b==d and A==C and B==D:
+                return "Parallelogram"
+            elif A+C == 180 and B+D == 180:
+                return "Cyclic Quadrilateral"
+            elif (A+B == 180 and C+D == 180) or (A+D == 180 and B+C == 180):
+                return "Trapezium"
+            else: return "Quadrilateral"
+        
+        def getAngleBisectors(self):
+            pass
+
+        def getDiagonalAngles(self):
+            d1,d2 = self.getDiagonalEquations()
+            angle1 = d1.getAngle(d2)
+            angle2 = 180-angle1
+
+            return angle1,angle2
+
+class Square(Quadrilateral):
+    def __init__(self, l1:StraightLine,l2:StraightLine,l3:StraightLine,l4:StraightLine):
+        Quadrilateral.__init__(self,l1,l2,l3,l4)
+        if self.shape != "Square":
+            raise ValueError("The given lines do not form a Square")
+        self.center = self.getCenter()
+
+    def getCenter(self):
+        a = self.point1
+        b = self.point3
+        return self.point1.midPoint(self.point3)
+    
+    def area(self):
+        a,b,c,d = self.getSideLength()
+        return a*b
+    
+    def getAngleBisectorsEquation(self):
+        return self.getDiagonalEquations()
+    
+    def getInradiusLength(self):
+        a = self.getDiagonalLength()
+        return a/(2*math.sqrt(2))
+    
+    def getCircumradiusLength(self):
+        a = self.getDiagonalLength()
+        return a/2
+    
+    def isPointInsideSquare(self, point:Point):
+        x,y = point.getPoint()
+        p1,p2,p3,p4 = self.getPoints()
+        x1,y1 = p1.getPoint()
+        x2,y2 = p2.getPoint()
+        x3,y3 = p3.getPoint()
+        x4,y4 = p4.getPoint()
+
+        def area(x1,y1,x2,y2,x3,y3):
+
+            return abs((x1*(y2-y3)+x2*(y3-y1)+x3*(y1-y2))/2.0)
+
+        A1 = area(x1,y1,x2,y2,x,y)
+        A2 = area(x2,y2,x3,y3,x,y)
+        A3 = area(x3,y3,x4,y4,x,y)
+        A4 = area(x4,y4,x1,y1,x,y)
+
+        A = area(x1,y1,x2,y2,x3,y3) + area(x1,y1,x3,y3,x4,y4)
+
+        return A == (A1+A2+A3+A4)
+    
+    def isPointOutsideSquare(self):
+        return not self.isPointInsideSquare()
+
+class Rectangle(Quadilateral):
+    def __init__(self, l1: StraightLine, l2: StraightLine, l3: StraightLine, l4: StraightLine):
+        super().__init__(l1, l2, l3, l4)
+        if self.shape != "Rectangle":
+            raise ValueError("The given lines do not form a Rectangle")
+        self.center=self.getCenter()
+    
+    def getCenter(self):
+        a=self.point1
+        b=self.point3
+        c=self.point1.findMidpoint(self.point3)
+        return c
+
+    def getAngleBisectorsEquations(self):
+        return self.getDiagonalEquations()
+
+    def getCircumradiusLength(self):   
+        a=self.getDiagonalLength()
+        R=a/2
+        return R
+
+    def area(self):
+        a,b,c,d=self.getSideLength()
+        return a*b
+
+    def isGoldenRectangle(self):
+        a,b=self.getSideLength()
+        l= a*b + b*b
+        k=a*a
+        if l==k:
+            return True
+        return False
+
+    def isPointPresentInside(self,point:Point):
+        x,y=point.getXYloc()
+        p1,p2,p3,p4=self.getPoints()
+        x1,y1=p1.getXYloc()
+        x2,y2=p2.getXYloc()
+        x3,y3=p3.getXYloc()
+        x4,y4=p4.getXYloc()
+
+        def area(x1, y1, x2, y2, x3, y3):
+            return abs((x1 * (y2 - y3) + 
+                    x2 * (y3 - y1) + 
+                    x3 * (y1 - y2)) / 2.0)
+
+        A1= area(x1,y1,x2,y2,x,y)
+        A2= area(x3,y3,x2,y2,x,y)
+        
+        A3= area(x3,y3,x4,y4,x,y)
+        A4= area(x1,y1,x4,y4,x,y)
+        
+        A = (area(x1, y1, x2, y2, x3, y3) + area(x1, y1, x4, y4, x3, y3))
+        
+        return A==(A1+A2+A3+A4)
+
+    def isPointPresentOutside(self):
+        return not self.isPointPresentInside()
+
+class Rhombus(Quadilateral):
+    def __init__(self, l1: StraightLine, l2: StraightLine, l3: StraightLine, l4: StraightLine):
+        super().__init__(l1, l2, l3, l4)
+        if self.shape != "Rectangle":
+            raise ValueError("The given lines do not form a Rectangle")
+        self.center=self.getCenter()
+    
+    def getCenter(self):
+        a=self.point1
+        b=self.point3
+        c=self.point1.findMidpoint(self.point3)
+        return c
+
+    def getAngleBisectorsEquations(self):
+        return self.getDiagonalEquations()
+
+    def getCircumradiusLength(self):   
+        a=self.getDiagonalLength()
+        R=a/2
+        return R
+
+    def area(self):
+        d1,d2=self.getDiagonalLength()
+        return d1*d2
+    
+    def isPointPresentInside(self,point:Point):
+        x,y=point.getXYloc()
+        p1,p2,p3,p4=self.getPoints()
+        x1,y1=p1.getXYloc()
+        x2,y2=p2.getXYloc()
+        x3,y3=p3.getXYloc()
+        x4,y4=p4.getXYloc()
+        def area(x1, y1, x2, y2, x3, y3):
+            return abs((x1 * (y2 - y3) + 
+                    x2 * (y3 - y1) + 
+                    x3 * (y1 - y2)) / 2.0)
+
+        A1= area(x1,y1,x2,y2,x,y)
+        A2= area(x3,y3,x2,y2,x,y)
+        
+        A3= area(x3,y3,x4,y4,x,y)
+        A4= area(x1,y1,x4,y4,x,y)
+        
+        A = (area(x1, y1, x2, y2, x3, y3) + area(x1, y1, x4, y4, x3, y3))
+        
+        return A==(A1+A2+A3+A4)
+
+    def isPointPresentOutside(self):
+        return not self.isPointPresentInside()
+    
+
+class Parallelogram(Quadilateral):
+    def __init__(self, l1: StraightLine, l2: StraightLine, l3: StraightLine, l4: StraightLine):
+        super().__init__(l1, l2, l3, l4)
+        if self.shape != "Rectangle":
+            raise ValueError("The given lines do not form a Rectangle")
+        self.center=self.getCenter()
+    
+    def getCenter(self):
+        a=self.point1
+        b=self.point3
+        c=self.point1.findMidpoint(self.point3)
+        return c
+
+    def getAngleBisectorsEquations(self):
+        return self.getDiagonalEquations()
+
+    def getCircumradiusLength(self):   
+        a=self.getDiagonalLength()
+        R=a/2
+        return R
+
+    def area(self):
+        d1,d2=self.getDiagonalLength()
+        a1,a2=self.getDiagonalAngles()
+        r=(math.pi*a1)/180
+        return d1*d2* math.sin(r)
+    
+    def isPointPresentInside(self,point:Point):
+        x,y=point.getXYloc()
+        p1,p2,p3,p4=self.getPoints()
+        x1,y1=p1.getXYloc()
+        x2,y2=p2.getXYloc()
+        x3,y3=p3.getXYloc()
+        x4,y4=p4.getXYloc()
+        def area(x1, y1, x2, y2, x3, y3):
+            return abs((x1 * (y2 - y3) + 
+                    x2 * (y3 - y1) + 
+                    x3 * (y1 - y2)) / 2.0)
+
+        A1= area(x1,y1,x2,y2,x,y)
+        A2= area(x3,y3,x2,y2,x,y)
+        
+        A3= area(x3,y3,x4,y4,x,y)
+        A4= area(x1,y1,x4,y4,x,y)
+        
+        A = (area(x1, y1, x2, y2, x3, y3) + area(x1, y1, x4, y4, x3, y3))
+        
+        return A==(A1+A2+A3+A4)
+
+    def isPointPresentOutside(self):
+        return not self.isPointPresentInside()
 
 
 # Testing Code
